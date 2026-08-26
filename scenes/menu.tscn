@@ -69,6 +69,12 @@ size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 26
 text = "Creditos"
 
+[node name="help" type="Button" parent="buttons"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 26
+text = "❓ Como Jogar"
+
 [node name="exiit" type="Button" parent="buttons"]
 layout_mode = 2
 size_flags_horizontal = 4
@@ -102,4 +108,6 @@ theme_override_font_sizes/font_size = 56
 text = "NetDefense"
 
 [connection signal="pressed" from="buttons/search_game" to="." method="_on_search_game_pressed"]
+[connection signal="pressed" from="buttons/view_cards" to="." method="_on_view_cards_pressed"]
+[connection signal="pressed" from="buttons/help" to="." method="_on_help_pressed"]
 [connection signal="pressed" from="buttons/exiit" to="." method="_on_exiit_pressed"]

@@ -58,7 +58,7 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 theme = SubResource("Theme_c6v1i")
 theme_override_font_sizes/font_size = 26
-text = "Jogar x Bot"
+text = "Jogar Local (Hotseat)"
 
 [node name="multiplayer_game" type="Button" parent="buttons"]
 layout_mode = 2
@@ -70,7 +70,68 @@ text = "Multiplayer"
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 26
-text = "Retornar
-"
+text = "Retornar"
+
+[node name="lobby" type="VBoxContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -200.0
+offset_right = 200.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="title" type="Label" parent="lobby"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Lobby Multiplayer"
+horizontal_alignment = 1
+
+[node name="ip_container" type="HBoxContainer" parent="lobby"]
+layout_mode = 2
+alignment = 1
+
+[node name="ip_label" type="Label" parent="lobby/ip_container"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "IP do Servidor: "
+
+[node name="ip_input" type="LineEdit" parent="lobby/ip_container"]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "127.0.0.1"
+placeholder_text = "127.0.0.1"
+alignment = 1
+
+[node name="host_button" type="Button" parent="lobby"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Criar Sala (Host)"
+
+[node name="join_button" type="Button" parent="lobby"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Conectar (Join)"
+
+[node name="status_label" type="Label" parent="lobby"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "Pronto para conectar"
+horizontal_alignment = 1
+
+[node name="back_button" type="Button" parent="lobby"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Voltar"
 
 [connection signal="pressed" from="buttons/return" to="." method="_on_return_pressed"]

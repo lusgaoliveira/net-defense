@@ -7,6 +7,8 @@ signal card_activated(card_id)
 
 var in_field: bool = false
 var card_id: int
+var slot_index: int = -1
+var owner_index: int = -1
 var original_position: Vector2
 var dragging := false
 var face_down: bool = false          
@@ -23,6 +25,15 @@ func _ready() -> void:
 func _input(event: InputEvent) -> void:
 	if not in_field:
 		return
+	# Garante que só o jogador do turno dono da carta possa interagir no campo
+	if GameManager.network_mode:
+		var local_index = GameManager.peer_ids.find(multiplayer.get_unique_id())
+		if owner_index != local_index or not GameManager.is_my_turn():
+			return
+	else:
+		if owner_index != GameManager.current_index:
+			return
+
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		var half = Vector2(120.0, 160.0) / 2.0
 		var rect = Rect2(global_position - half, Vector2(120.0, 160.0))
@@ -36,6 +47,9 @@ func _on_area_input(_viewport, event, _shape_idx) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
 			if face_down:
+				return
+			# Impede de arrastar a mão se não for seu turno
+			if GameManager.network_mode and not GameManager.is_my_turn():
 				return
 			dragging = true
 			original_position = global_position
@@ -58,7 +72,8 @@ func _show_field_menu() -> void:
 	var menu = PopupMenu.new()
 	menu.name = "FieldMenu"
 	var activate_cost = CardDatabase.get_card(card_id).get("activate_cost", 0)
-	var can_afford = GameManager.current_server().can_afford(activate_cost)
+	var server = GameManager.servers[owner_index]
+	var can_afford = server.can_afford(activate_cost)
 	menu.add_item("Ativar poder (%d PP)" % activate_cost, 0)
 	menu.set_item_disabled(0, not can_afford)
 	menu.add_item("Descartar", 1)
@@ -68,11 +83,9 @@ func _show_field_menu() -> void:
 	menu.popup()
 	menu.id_pressed.connect(func(id):
 		if id == 0:
-			emit_signal("card_activated", card_id)
-			_on_activated()
+			GameManager.activate_card(slot_index)
 		else:
-			emit_signal("card_discarded", card_id)
-			queue_free()
+			GameManager.discard_card(slot_index)
 		menu.queue_free()
 	)
 	menu.popup_hide.connect(func():
@@ -135,31 +148,33 @@ func _check_drop() -> void:
 	for other_area in overlapping:
 		if other_area.is_in_group("play_area"):
 			var field = other_area.get_parent()
-			if field.owner_id != GameManager.current_index:
+			
+			# Em rede: só pode jogar no seu próprio turno
+			if GameManager.network_mode and not GameManager.is_my_turn():
 				global_position = original_position
 				return
-			if not field.is_slot_free(other_area):
+				
+			# Só pode jogar no seu próprio campo
+			var local_index = GameManager.peer_ids.find(multiplayer.get_unique_id()) if GameManager.network_mode else GameManager.current_index
+			if field.owner_id != local_index:
 				global_position = original_position
 				return
+				
+			var slot_idx = field.slots.find(other_area)
+			if slot_idx == -1 or not field.is_slot_free(other_area):
+				global_position = original_position
+				return
+				
 			var cost = CardDatabase.get_card(card_id).get("cost", 0)
-			if not GameManager.current_server().can_afford(cost):
+			if not GameManager.servers[local_index].can_afford(cost):
 				global_position = original_position
 				return
-			field.occupy_slot(other_area)
-			var slot_global_pos = other_area.global_position
-			var target_size = Vector2(field.SLOT_WIDTH, field.SLOT_HEIGHT)
-			var base_size = card_image.texture.get_size() * card_image.scale
-			var new_scale = Vector2(target_size.x / base_size.x, target_size.y / base_size.y)
-			var old_parent = get_parent()
-			old_parent.remove_child(self)
-			field.add_child(self)
-			scale = Vector2.ONE
-			global_position = slot_global_pos
-			scale = new_scale
-			z_index = 1
+				
+			# Envia requisição para jogar e retorna visualmente para a mão
+			# (será reposicionado quando o servidor autorizar e emitir o sinal correspondente)
+			GameManager.play_card(card_id, slot_idx)
+			global_position = original_position
 			dragging = false
-			in_field = true
-			emit_signal("card_played", card_id)
 			return
 	global_position = original_position
 

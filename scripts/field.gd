@@ -41,3 +41,11 @@ func is_slot_free(slot: Area2D) -> bool:
 
 func occupy_slot(slot: Area2D) -> void:
 	occupied[slot] = true
+
+func free_slot_by_index(index: int) -> void:
+	if index >= 0 and index < slots.size():
+		occupied[slots[index]] = false
+
+func occupy_slot_by_index(index: int) -> void:
+	if index >= 0 and index < slots.size():
+		occupied[slots[index]] = true

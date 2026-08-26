@@ -22,6 +22,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 GameManager="*res://scripts/game_manager.gd"
+NetworkManager="*uid://blf0ip52mbdr1"
 
 [display]
 
